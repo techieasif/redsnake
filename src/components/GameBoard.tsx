@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { Position } from '../types/game';
-import { GRID_SIZE, CANVAS_SIZE } from '../utils/constants';
+import { GRID_SIZE } from '../utils/constants';
 
 interface GameBoardProps {
   snake: Position[];
