@@ -1,5 +1,6 @@
+import React, { useState, useEffect, useRef } from 'react';
 import type { Position } from '../types/game';
-import { GRID_SIZE, CANVAS_SIZE } from '../types/game';
+import { GRID_SIZE, CANVAS_SIZE } from '../utils/constants';
 
 interface GameBoardProps {
   snake: Position[];
@@ -7,9 +8,28 @@ interface GameBoardProps {
 }
 
 const GameBoard: React.FC<GameBoardProps> = ({ snake, food }) => {
-  // Calculate the actual pixel size of the game board
-  const boardSize = GRID_SIZE * Math.floor(CANVAS_SIZE / GRID_SIZE);
-  const cellSize = boardSize / (CANVAS_SIZE / GRID_SIZE);
+  // Calculate responsive cell size based on container
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        const size = Math.min(
+          containerRef.current.offsetWidth,
+          containerRef.current.offsetHeight || Infinity
+        );
+        setDimensions({ width: size, height: size });
+      }
+    };
+
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
+
+  const cellSize = dimensions.width / GRID_SIZE;
+  const boardSize = cellSize * GRID_SIZE;
 
   const renderSnake = () => {
     return snake.map((segment, index) => (
@@ -104,19 +124,37 @@ const GameBoard: React.FC<GameBoardProps> = ({ snake, food }) => {
   };
 
   return (
-    <div 
-      className="game-board"
-      style={{
-        width: `${boardSize}px`,
-        height: `${boardSize}px`,
+    <div className="game-area" ref={containerRef}>
+      <div className="game-board" style={{
         position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      {/* Background elements */}
-      <div className="sky" />
-      {renderClouds()}
-      
+        width: '100%',
+        height: '100%',
+        maxWidth: '600px',
+        maxHeight: '600px',
+        margin: '0 auto',
+      }}>
+        {/* Background elements */}
+        <div className="sky" />
+        {renderClouds()}
+        
+        {/* Game elements */}
+        {renderGround()}
+        <div className="grass-overlay" />
+        {renderSnake()}
+        {renderFood()}
+        <div 
+          className="grass-overlay"
+          style={{
+            position: 'absolute',
+            bottom: `${GRID_SIZE * 2}px`,
+            left: 0,
+            right: 0,
+            height: '20px',
+            background: 'repeating-linear-gradient(45deg, #5cb800, #5cb800 10px, #4ca100 10px, #4ca100 20px)',
+            zIndex: 1,
+          }}
+        />
+      </div>
       {/* Game elements */}
       {renderGround()}
       <div className="grass-overlay" />
